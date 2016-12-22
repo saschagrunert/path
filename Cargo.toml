@@ -1,0 +1,18 @@
+[package]
+name = "path"
+version = "0.1.0"
+authors = ["Sascha Grunert <mail@saschagrunert.de>"]
+license = "MIT"
+readme = "README.md"
+keywords = ["connection", "tracking", "trace", "identification"]
+repository = "https://github.com/saschagrunert/path"
+homepage = "https://github.com/saschagrunert/path"
+documentation = "https://docs.rs/path"
+description = "Connection tracing for abstract packet representations"
+
+[dependencies]
+fnv = "1"
+linked-hash-map = "0"
+log = "0"
+term = "0"
+time = "0"
