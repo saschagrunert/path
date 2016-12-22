@@ -33,7 +33,6 @@
 #[macro_use]
 extern crate log;
 extern crate fnv;
-extern crate term;
 extern crate time;
 extern crate mowl;
 extern crate linked_hash_map;

@@ -1,8 +1,6 @@
 //! Basic error handling mechanisms
 use std::error::Error;
-use std::convert::From;
-use std::{io, fmt};
-use term;
+use std::fmt;
 
 /// The result type for the Parsing
 pub type PathResult<'a, T> = Result<T, PathError>;
@@ -48,32 +46,6 @@ pub enum ErrorType {
 
     /// Connection removed because of a timeout
     Timeout,
-
-    /// Errors not directly from the library (like OS errors)
-    Other,
-
-    /// Internal errors which should not happen at all
-    Internal,
-}
-
-// Error conversion
-macro_rules! from_error {
-    ($($p:ty,)*) => (
-        $(impl From<$p> for PathError {
-            fn from(err: $p) -> PathError {
-                PathError {
-                    code: ErrorType::Other,
-                    description: err.description().to_owned(),
-                    cause: Some(Box::new(err)),
-                }
-            }
-        })*
-    )
-}
-
-from_error! {
-    io::Error,
-    term::Error,
 }
 
 /// Throw an internal error
