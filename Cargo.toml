@@ -1,6 +1,6 @@
 [package]
 name = "path"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Sascha Grunert <mail@saschagrunert.de>"]
 license = "MIT"
 readme = "README.md"
@@ -14,5 +14,6 @@ description = "IP based connection identification and tracing"
 fnv = "1"
 linked-hash-map = "0"
 log = "0"
+mowl = "1"
 term = "0"
 time = "0"

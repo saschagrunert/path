@@ -35,14 +35,12 @@ extern crate log;
 extern crate fnv;
 extern crate term;
 extern crate time;
+extern crate mowl;
 extern crate linked_hash_map;
 
 #[macro_use]
 pub mod error;
-mod logger;
-
 use error::{PathResult, ErrorType};
-use logger::Logger;
 
 use std::fmt;
 use std::hash::BuildHasherDefault;
@@ -51,7 +49,7 @@ use std::net::IpAddr;
 use time::{Duration, precise_time_ns};
 use fnv::FnvHasher;
 use linked_hash_map::LinkedHashMap;
-use log::LogLevelFilter;
+use log::LogLevel;
 
 type HashMapFnv<T> = LinkedHashMap<Identifier, Data<T>, BuildHasherDefault<FnvHasher>>;
 
@@ -93,19 +91,15 @@ impl<T: Clone> Path<T> {
     /// # extern crate log;
     /// # extern crate path;
     /// # fn main() {
-    /// use log::LogLevelFilter;
+    /// use log::LogLevel;
     /// use path::Path;
     ///
-    /// let path :Path<u8> = Path::new().set_log_level(LogLevelFilter::Trace);
+    /// let path :Path<u8> = Path::new().set_log_level(LogLevel::Trace);
     /// # }
     /// ```
-    pub fn set_log_level(&mut self, level: LogLevelFilter) -> Self {
+    pub fn set_log_level(&mut self, level: LogLevel) -> Self {
         // Setup the logger if not already set
-        if log::set_logger(|max_log_level| {
-                max_log_level.set(level);
-                Box::new(Logger)
-            })
-            .is_err() {
+        if mowl::init_with_level(level).is_err() {
             error!("Logger already set.");
         };
         info!("Log level set to: {:?}", level);
