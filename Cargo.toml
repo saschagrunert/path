@@ -8,7 +8,7 @@ keywords = ["connection", "tracking", "trace", "identification"]
 repository = "https://github.com/saschagrunert/path"
 homepage = "https://github.com/saschagrunert/path"
 documentation = "https://docs.rs/path"
-description = "Connection tracing for abstract packet representations"
+description = "IP based connection identification and tracing"
 
 [dependencies]
 fnv = "1"
