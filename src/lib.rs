@@ -96,13 +96,13 @@ impl<T: Clone> Path<T> {
     /// let path :Path<u8> = Path::new().set_log_level(LogLevel::Trace);
     /// # }
     /// ```
-    pub fn set_log_level(&mut self, level: LogLevel) -> Self {
+    pub fn set_log_level(self, level: LogLevel) -> Self {
         // Setup the logger if not already set
         if mowl::init_with_level(level).is_err() {
             error!("Logger already set.");
         };
         info!("Log level set to: {:?}", level);
-        self.clone()
+        self
     }
 
     /// Track a connection based on its `Identifier`
@@ -170,8 +170,11 @@ impl<T: Clone> Path<T> {
             ConnectionState::Ok => {}
         }
 
-        // Unwrap here since it should be impossible to have no valid entry here
-        Ok(self.hashmap.get_mut(identifier).unwrap())
+        // Usually it should be impossible to have no valid entry here
+        match self.hashmap.get_mut(identifier) {
+            Some(data) => Ok(data),
+            None => bail!(ErrorType::Internal, "Could not get connection data."),
+        }
     }
 }
 

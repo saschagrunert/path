@@ -46,6 +46,9 @@ pub enum ErrorType {
 
     /// Connection removed because of a timeout
     Timeout,
+
+    /// Internal error which should not happen at all
+    Internal,
 }
 
 /// Throw an internal error
