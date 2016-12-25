@@ -11,7 +11,7 @@ use time::{Duration, precise_time_ns};
 extern crate log;
 use log::LogLevel;
 
-fn get_identifier() -> Identifier {
+fn get_identifier() -> Identifier<u8> {
     Identifier::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
                     1234,
                     IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
@@ -21,7 +21,7 @@ fn get_identifier() -> Identifier {
 
 #[test]
 fn path_success() {
-    let mut path: Path<u8> = Path::new().set_log_level(LogLevel::Trace);
+    let mut path: Path<u8, u8> = Path::new().set_log_level(LogLevel::Trace);
     let identifier = get_identifier();
     println!("{}", identifier);
 
@@ -35,7 +35,7 @@ fn path_success() {
 
 #[test]
 fn path_success_data() {
-    let mut path: Path<u8> = Path::new().set_log_level(LogLevel::Trace);
+    let mut path: Path<u8, u8> = Path::new().set_log_level(LogLevel::Trace);
     let identifier = get_identifier();
     println!("{}", identifier);
 
@@ -54,7 +54,7 @@ fn path_success_data() {
 
 #[test]
 fn path_success_pop_front() {
-    let mut path: Path<u8> = Path::new().set_log_level(LogLevel::Trace);
+    let mut path: Path<u8, u8> = Path::new().set_log_level(LogLevel::Trace);
     path.max_connections = 1;
     let mut identifier = get_identifier();
 
@@ -101,7 +101,7 @@ fn path_failure_compare_connection() {
 
 #[test]
 fn path_failure_timeout() {
-    let mut path: Path<u8> = Path::new().set_log_level(LogLevel::Trace);
+    let mut path: Path<u8, u8> = Path::new().set_log_level(LogLevel::Trace);
     let identifier = get_identifier();
     path.timeout = Duration::zero();
     assert!(path.track(&identifier).is_ok());
@@ -119,7 +119,7 @@ fn path_failure_timeout() {
 
 #[test]
 fn path_failure_packet_counter_overflow() {
-    let mut path: Path<u8> = Path::new().set_log_level(LogLevel::Trace);
+    let mut path: Path<u8, u8> = Path::new().set_log_level(LogLevel::Trace);
     let identifier = get_identifier();
 
     {

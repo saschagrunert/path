@@ -13,7 +13,7 @@
 //! use std::net::{IpAddr, Ipv4Addr};
 //!
 //! // Create a new `Path` for tracking `u8` values as custom data
-//! let mut path :Path<u8> = Path::new();
+//! let mut path :Path<u8, u8> = Path::new();
 //!
 //! // Build up a new identifier from IP Addresses, their ports, and a key (in this case the IP Protocol)
 //! let identifier = Identifier::new(IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1)), 1234,
@@ -42,7 +42,7 @@ pub mod error;
 use error::{PathResult, ErrorType};
 
 use std::fmt;
-use std::hash::BuildHasherDefault;
+use std::hash::{BuildHasherDefault, Hash};
 use std::net::IpAddr;
 
 use time::{Duration, precise_time_ns};
@@ -50,13 +50,15 @@ use fnv::FnvHasher;
 use linked_hash_map::LinkedHashMap;
 use log::LogLevel;
 
-type HashMapFnv<T> = LinkedHashMap<Identifier, Data<T>, BuildHasherDefault<FnvHasher>>;
+type HashMapFnv<K, C> = LinkedHashMap<Identifier<K>, Data<C>, BuildHasherDefault<FnvHasher>>;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// Global connection tracking structure
-pub struct Path<T> {
+pub struct Path<K, C>
+    where K: Hash + Eq + PartialEq
+{
     /// Main storage for all connections
-    pub hashmap: HashMapFnv<T>,
+    pub hashmap: HashMapFnv<K, C>,
 
     /// A general connection timeout, per default 10 minutes
     pub timeout: Duration,
@@ -65,7 +67,10 @@ pub struct Path<T> {
     pub max_connections: u64,
 }
 
-impl<T: Clone> Path<T> {
+impl<K, C> Path<K, C>
+    where C: Clone,
+          K: fmt::Debug + Clone + Hash + Eq + PartialEq
+{
     /// Create a new `Path` instance with a timeout of 10 minutes and 1 million connections at a
     /// maximum
     ///
@@ -73,7 +78,7 @@ impl<T: Clone> Path<T> {
     /// ```
     /// use path::Path;
     ///
-    /// let path :Path<u8> = Path::new();
+    /// let path :Path<u8, u8> = Path::new();
     /// ```
     pub fn new() -> Self {
         Path {
@@ -93,7 +98,7 @@ impl<T: Clone> Path<T> {
     /// use log::LogLevel;
     /// use path::Path;
     ///
-    /// let path :Path<u8> = Path::new().set_log_level(LogLevel::Trace);
+    /// let path :Path<u8, u8> = Path::new().set_log_level(LogLevel::Trace);
     /// # }
     /// ```
     pub fn set_log_level(self, level: LogLevel) -> Self {
@@ -112,7 +117,7 @@ impl<T: Clone> Path<T> {
     /// use path::{Path, Identifier};
     /// use std::net::{IpAddr, Ipv4Addr};
     ///
-    /// let mut path :Path<u8> = Path::new();
+    /// let mut path :Path<u8, u8> = Path::new();
     /// let identifier = Identifier::new(IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1)), 1234,
     ///                                  IpAddr::V4(Ipv4Addr::new(10, 0, 0, 2)), 443,
     ///                                  6);
@@ -121,7 +126,7 @@ impl<T: Clone> Path<T> {
     /// assert_eq!(data.custom, None);
     /// assert_eq!(data.packet_counter, 1);
     /// ```
-    pub fn track(&mut self, identifier: &Identifier) -> PathResult<&mut Data<T>> {
+    pub fn track(&mut self, identifier: &Identifier<K>) -> PathResult<&mut Data<C>> {
         // Get the current timestamp
         let now = precise_time_ns();
 
@@ -180,17 +185,17 @@ impl<T: Clone> Path<T> {
 
 #[derive(Debug, Eq, PartialEq)]
 /// Connection representation
-pub struct Connection<'a, 'b, T: 'b> {
+pub struct Connection<'a, 'b, K: 'a, C: 'b> {
     /// Identifies the connection
-    pub identifier: &'a Identifier,
+    pub identifier: &'a Identifier<K>,
 
     /// Data which can be used for the connection
-    pub data: &'b mut Data<T>,
+    pub data: &'b mut Data<C>,
 }
 
-impl<'a, 'b, T> Connection<'a, 'b, T> {
+impl<'a, 'b, K, C> Connection<'a, 'b, K, C> {
     /// Create a new `Connection` from an `Identifier` and `Data`
-    pub fn new(identifier: &'a Identifier, data: &'b mut Data<T>) -> Self {
+    pub fn new(identifier: &'a Identifier<K>, data: &'b mut Data<C>) -> Self {
         Connection {
             identifier: identifier,
             data: data,
@@ -198,7 +203,9 @@ impl<'a, 'b, T> Connection<'a, 'b, T> {
     }
 }
 
-impl<'a, 'b, T> fmt::Display for Connection<'a, 'b, T> {
+impl<'a, 'b, K, C> fmt::Display for Connection<'a, 'b, K, C>
+    where K: fmt::Debug
+{
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.identifier)
     }
@@ -206,7 +213,7 @@ impl<'a, 'b, T> fmt::Display for Connection<'a, 'b, T> {
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 /// Identifies the connection
-pub struct Identifier {
+pub struct Identifier<K> {
     /// Lower subscriber
     pub lower: Subscriber,
 
@@ -214,12 +221,12 @@ pub struct Identifier {
     pub greater: Subscriber,
 
     /// Usually the communication protocol of the subscribers
-    pub key: u16,
+    pub key: K,
 }
 
-impl Identifier {
+impl<K> Identifier<K> {
     /// Create a new `Identifier` from needed connection information
-    pub fn new(source_ip: IpAddr, source_port: u16, destination_ip: IpAddr, destination_port: u16, key: u16) -> Self {
+    pub fn new(source_ip: IpAddr, source_port: u16, destination_ip: IpAddr, destination_port: u16, key: K) -> Self {
         let source_tuple = (source_ip, source_port);
         let destination_tuple = (destination_ip, destination_port);
         let connection_tuple = if source_tuple > destination_tuple {
@@ -241,7 +248,7 @@ impl Identifier {
     }
 }
 
-impl fmt::Display for Identifier {
+impl<K: fmt::Debug> fmt::Display for Identifier<K> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f,
                "{}:{} ↹ {}:{} ({:?})",
@@ -265,9 +272,9 @@ pub struct Subscriber {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 /// Identifies the connection
-pub struct Data<T> {
+pub struct Data<C> {
     /// Data from the user
-    pub custom: Option<T>,
+    pub custom: Option<C>,
 
     /// The packet counter for the connection
     pub packet_counter: u64,
@@ -276,7 +283,7 @@ pub struct Data<T> {
     timestamp: u64,
 }
 
-impl<T> Data<T> {
+impl<C> Data<C> {
     /// Create new connection data
     pub fn new(timestamp: u64) -> Self {
         Data {
