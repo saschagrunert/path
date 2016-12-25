@@ -11,7 +11,7 @@ use path::{Path, Identifier};
 use std::net::{IpAddr, Ipv4Addr};
 
 // Create a new `Path` for tracking `u8` values as custom data
-let mut path :Path<u8> = Path::new();
+let mut path :Path<u8, u8> = Path::new();
 
 // Build up a new identifier from IP Addresses, their ports, and a key (in this case the IP Protocol)
 let identifier = Identifier::new(IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1)), 1234,
