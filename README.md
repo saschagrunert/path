@@ -19,9 +19,9 @@ let identifier = Identifier::new(IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1)), 1234,
                                  6);
 
 // Do the actual work
-let data = path.track(&identifier).unwrap();
+let connection = path.track(identifier).unwrap();
 
 // Now it is possible to set/get the custom data
-assert_eq!(data.custom, None);
-assert_eq!(data.packet_counter, 1);
+assert_eq!(connection.data.custom, None);
+assert_eq!(connection.data.packet_counter, 1);
 ```

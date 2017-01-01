@@ -21,11 +21,11 @@
 //!                                  6);
 //!
 //! // Do the actual work
-//! let data = path.track(&identifier).unwrap();
+//! let connection = path.track(identifier).unwrap();
 //!
 //! // Now it is possible to set/get the custom data
-//! assert_eq!(data.custom, None);
-//! assert_eq!(data.packet_counter, 1);
+//! assert_eq!(connection.data.custom, None);
+//! assert_eq!(connection.data.packet_counter(), 1);
 //! ```
 //!
 #![deny(missing_docs)]
@@ -58,7 +58,7 @@ pub struct Path<K, C>
     where K: Hash + Eq + PartialEq
 {
     /// Main storage for all connections
-    pub hashmap: HashMapFnv<K, C>,
+    hashmap: HashMapFnv<K, C>,
 
     /// A general connection timeout, per default 10 minutes
     pub timeout: Duration,
@@ -121,17 +121,17 @@ impl<K, C> Path<K, C>
     /// let identifier = Identifier::new(IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1)), 1234,
     ///                                  IpAddr::V4(Ipv4Addr::new(10, 0, 0, 2)), 443,
     ///                                  6);
-    /// let data = path.track(&identifier).unwrap();
+    /// let connection = path.track(identifier).unwrap();
     ///
-    /// assert_eq!(data.custom, None);
-    /// assert_eq!(data.packet_counter, 1);
+    /// assert_eq!(connection.data.custom, None);
+    /// assert_eq!(connection.data.packet_counter(), 1);
     /// ```
-    pub fn track(&mut self, identifier: &Identifier<K>) -> PathResult<&mut Data<C>> {
+    pub fn track(&mut self, identifier: Identifier<K>) -> PathResult<Connection<K, C>> {
         // Get the current timestamp
         let now = precise_time_ns();
 
         // Check if the entry already exists and retrieve a connection state
-        let connection_state = match self.hashmap.get_refresh(identifier) {
+        let connection_state = match self.hashmap.get_refresh(&identifier) {
             Some(data) => {
                 if Duration::nanoseconds((now - data.timestamp) as i64) <= self.timeout {
                     match data.packet_counter.checked_add(1) {
@@ -152,7 +152,7 @@ impl<K, C> Path<K, C>
 
             // Connection timeout happened
             ConnectionState::Timeout => {
-                self.hashmap.remove(identifier);
+                self.hashmap.remove(&identifier);
                 warn!("Connection removed (timeout): {}", identifier);
                 bail!(ErrorType::Timeout, "Connection removed because of timeout");
             }
@@ -167,19 +167,27 @@ impl<K, C> Path<K, C>
                 }
 
                 // Insert a new connection
-                self.hashmap.insert(identifier.clone(), Data::new(now));
                 debug!("Connection inserted: {}", identifier);
+                self.hashmap.insert(identifier, Data::new());
             }
 
             // We just need to return a mutable reference to the HashMap value
             ConnectionState::Ok => {}
         }
 
-        // Usually it should be impossible to have no valid entry here
-        match self.hashmap.get_mut(identifier) {
-            Some(data) => Ok(data),
-            None => bail!(ErrorType::Internal, "Could not get connection data."),
-        }
+        // Unwrapping should be save here since we need an actual connection be
+        // be on this point.
+        Ok(self.last_mut().unwrap())
+    }
+
+    /// Get the number of actual tracked connections
+    pub fn connection_count(&self) -> usize {
+        self.hashmap.len()
+    }
+
+    /// Retrieve the last `Connection` as a mutable reference if available
+    pub fn last_mut(&mut self) -> Option<Connection<K, C>> {
+        self.hashmap.iter_mut().rev().next().map(|(i, d)| Connection::new(i, d))
     }
 }
 
@@ -277,7 +285,7 @@ pub struct Data<C> {
     pub custom: Option<C>,
 
     /// The packet counter for the connection
-    pub packet_counter: u64,
+    packet_counter: u64,
 
     /// Last accessed timestamp
     timestamp: u64,
@@ -285,12 +293,17 @@ pub struct Data<C> {
 
 impl<C> Data<C> {
     /// Create new connection data
-    pub fn new(timestamp: u64) -> Self {
+    pub fn new() -> Self {
         Data {
             packet_counter: 1,
-            timestamp: timestamp,
+            timestamp: precise_time_ns(),
             custom: None,
         }
+    }
+
+    /// Retrieve the current packet counter value
+    pub fn packet_counter(&self) -> u64 {
+        self.packet_counter
     }
 }
 
