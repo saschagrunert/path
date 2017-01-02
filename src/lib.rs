@@ -105,8 +105,9 @@ impl<K, C> Path<K, C>
         // Setup the logger if not already set
         if mowl::init_with_level(level).is_err() {
             error!("Logger already set.");
-        };
-        info!("Log level set to: {:?}", level);
+        } else {
+            info!("Log level set to: {:?}", level);
+        }
         self
     }
 
