@@ -3,7 +3,7 @@ use std::error::Error;
 use std::fmt;
 
 /// The result type for the Parsing
-pub type PathResult<'a, T> = Result<T, PathError>;
+pub type PathResult<T> = Result<T, PathError>;
 
 /// Representation for an error of the library
 pub struct PathError {
