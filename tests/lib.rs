@@ -84,6 +84,7 @@ fn path_success_flush() {
 
     assert!(path.track(identifier.clone()).is_ok());
     assert_eq!(path.connection_count(), 1);
+    std::thread::sleep(std::time::Duration::from_millis(10));
     assert_eq!(path.flush().len(), 1);
     assert_eq!(path.connection_count(), 0);
 }
