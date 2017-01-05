@@ -201,7 +201,7 @@ impl<K, C> Path<K, C>
         let now = precise_time_ns();
         let identifiers = self.hashmap
             .iter()
-            .filter_map(|(identifier, data)| if Duration::nanoseconds((now - data.timestamp) as i64) <= self.timeout {
+            .filter_map(|(identifier, data)| if Duration::nanoseconds((now - data.timestamp) as i64) > self.timeout {
                 Some(identifier.clone())
             } else {
                 None
