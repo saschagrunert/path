@@ -66,6 +66,17 @@ fn path_success_pop_front() {
 }
 
 #[test]
+fn path_success_remove() {
+    let mut path: Path<u8, ()> = Path::new().set_log_level(LogLevel::Trace);
+    let identifier = get_identifier();
+
+    assert!(path.track(identifier.clone()).is_ok());
+    assert_eq!(path.connection_count(), 1);
+    path.remove(&identifier);
+    assert_eq!(path.connection_count(), 0);
+}
+
+#[test]
 fn path_success_compare_identifiers() {
     let identifier = Identifier::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
                                      443,

@@ -190,6 +190,11 @@ impl<K, C> Path<K, C>
     pub fn last_mut(&mut self) -> Option<Connection<K, C>> {
         self.hashmap.iter_mut().rev().next().map(|(i, d)| Connection::new(i, d))
     }
+
+    /// Remove a connection
+    pub fn remove(&mut self, identifier: &Identifier<K>) {
+        self.hashmap.remove(identifier);
+    }
 }
 
 #[derive(Debug, Eq, PartialEq)]
