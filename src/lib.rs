@@ -195,6 +195,23 @@ impl<K, C> Path<K, C>
     pub fn remove(&mut self, identifier: &Identifier<K>) {
         self.hashmap.remove(identifier);
     }
+
+    /// Remove all connections which have a timeout and return them in a vector
+    pub fn flush(&mut self) -> Vec<Identifier<K>> {
+        let now = precise_time_ns();
+        let identifiers = self.hashmap
+            .iter()
+            .filter_map(|(identifier, data)| if Duration::nanoseconds((now - data.timestamp) as i64) <= self.timeout {
+                Some(identifier.clone())
+            } else {
+                None
+            })
+            .collect::<Vec<Identifier<K>>>();
+        for identifier in &identifiers {
+            self.remove(identifier);
+        }
+        identifiers
+    }
 }
 
 #[derive(Debug, Eq, PartialEq)]

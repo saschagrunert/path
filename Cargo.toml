@@ -1,6 +1,6 @@
 [package]
 name = "path"
-version = "0.7.0"
+version = "0.8.0"
 authors = ["Sascha Grunert <mail@saschagrunert.de>"]
 license = "MIT"
 readme = "README.md"

@@ -77,6 +77,18 @@ fn path_success_remove() {
 }
 
 #[test]
+fn path_success_flush() {
+    let mut path: Path<u8, ()> = Path::new().set_log_level(LogLevel::Trace);
+    let identifier = get_identifier();
+    path.timeout = Duration::milliseconds(1);
+
+    assert!(path.track(identifier.clone()).is_ok());
+    assert_eq!(path.connection_count(), 1);
+    assert_eq!(path.flush().len(), 1);
+    assert_eq!(path.connection_count(), 0);
+}
+
+#[test]
 fn path_success_compare_identifiers() {
     let identifier = Identifier::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
                                      443,
