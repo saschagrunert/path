@@ -1,6 +1,6 @@
 [package]
 name = "path"
-version = "0.8.1"
+version = "0.8.2"
 authors = ["Sascha Grunert <mail@saschagrunert.de>"]
 license = "MIT"
 readme = "README.md"
@@ -9,6 +9,12 @@ repository = "https://github.com/saschagrunert/path"
 homepage = "https://github.com/saschagrunert/path"
 documentation = "https://docs.rs/path"
 description = "IP based connection identification and tracing"
+categories = ["network-programming"]
+license-file = "LICENSE"
+
+[badges]
+travis-ci = { repository = "saschagrunert/path", branch = "master" }
+appveyor = { repository = "saschagrunert/path", branch = "master", service = "github" }
 
 [dependencies]
 fnv = "1"
