@@ -10,7 +10,6 @@ homepage = "https://github.com/saschagrunert/path"
 documentation = "https://docs.rs/path"
 description = "IP based connection identification and tracing"
 categories = ["network-programming"]
-license-file = "LICENSE"
 
 [badges]
 travis-ci = { repository = "saschagrunert/path", branch = "master" }
