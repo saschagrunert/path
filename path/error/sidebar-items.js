@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["ErrorType","Error codes as indicator what happened"]],"fn":[["bail","Throw an internal error"]],"struct":[["PathError","Representation for an error of the library"]],"type":[["PathResult","The result type for the Parsing"]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["error","Basic error handling mechanisms"]],"struct":[["Connection","Connection representation"],["Data","Identifies the connection"],["Identifier","Identifies the connection"],["Path","Global connection tracking structure"],["Subscriber","Identifies the connection endpoints"]]});
